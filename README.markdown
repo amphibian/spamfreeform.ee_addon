@@ -10,9 +10,13 @@
 
 After activating Spam-Freeform and adding your Akismet API key to the Extension Settings, you need to add some hidden fields to your Freeform forms. These hidden fields tell the extension which content should be sent to Akismet for screening.
 
-* *spamfreeform_name*: the field name who's content should be used as the submitter's name when sent to Akismet.
-* *spamfreeform_email*: the field name who's content should be used as the submitter's email address when sent to Akismet.
-* *spamfreeform_fields*: a pipe-delimited list of field names who's content should be used as the submitter's "comment" when sent to Akismet. This can be the cumultive contents of one or more fields.
+* **spamfreeform_name**: the field name who's content should be used as the submitter's name when sent to Akismet.
+* **spamfreeform_email**: the field name who's content should be used as the submitter's email address when sent to Akismet.
+* **spamfreeform_fields**: a pipe-delimited list of field names who's content should be used as the submitter's "comment" when sent to Akismet. This can be the cumulative contents of one or more fields.
+
+If a submission is found to be spam by Akismet, the user will receive an error message indicating that their submission was deemed to be spam, and the form will not be submitted.
+
+Any Freeform forms which don't have the **spamfreeform_fields** hidden field will simply bypass Akismet screening.
 
 Here's an example Freeform form with Spam-Freeform fields added:
 
@@ -44,5 +48,3 @@ Here's an example Freeform form with Spam-Freeform fields added:
 			<input type="hidden" name="spamfreeform_fields" value="comments|how-did-you-hear" />
 		</div>						
 	{/exp:freeform:form}
-	
-If a submission is found to be spam by Akismet, the user will receive an error message indicating that their submission was deemed to be spam, and the form will not be submitted.
