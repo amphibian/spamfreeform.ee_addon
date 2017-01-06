@@ -2,17 +2,12 @@
 
 class Spamfreeform_ext
 {
-	var $settings				= array();
-	var $name				= 'Spam-Freeform';
-	var $version				= '1.0';
-	var $description		= 'Runs Freeform submissions through the Akismet anti-spam service.';
-	var $settings_exist	= 'y';
-	var $docs_url			= 'http://github.com/amphibian/spamfreeform.ee_addon';
-
+	var $settings = array();
+	var $site;
+	var $version = '1.0';
 
 	function __construct($settings='')
 	{
-	    $this->EE =& get_instance();
 	    $this->settings = $settings;
 	    $this->site = urlencode('http://'.$_SERVER['SERVER_NAME']);
 	}
@@ -29,14 +24,13 @@ class Spamfreeform_ext
 	
 	function freeform_module_validate_end($errors)
 	{	
-	
 		$content = '';
-		if($this->EE->input->post('spamfreeform_fields') && $this->EE->input->post('spamfreeform_fields') != '')
+		if(ee()->input->post('spamfreeform_fields') && ee()->input->post('spamfreeform_fields') != '')
 		{
-			$fields = explode('|', $this->EE->input->post('spamfreeform_fields'));
+			$fields = explode('|', ee()->input->post('spamfreeform_fields'));
 			foreach($fields as $field)
 			{
-				$content .= ($this->EE->input->post($field)) ? $this->EE->input->post($field).' ' : '';
+				$content .= (ee()->input->post($field)) ? ee()->input->post($field).' ' : '';
 			}
 		}
 		
@@ -47,20 +41,26 @@ class Spamfreeform_ext
 				'comment_content' => $content,
 				'referrer' => $_SERVER['HTTP_REFERER'],
 				'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-				'user_ip' => $this->EE->input->ip_address()
+				'user_ip' => ee()->input->ip_address()
 			);
 			
-			if($this->EE->input->post('spamfreeform_name') && $this->EE->input->post('spamfreeform_name') != '')
+			if(ee()->input->post('spamfreeform_name') && ee()->input->post('spamfreeform_name') != '')
 			{
-				$query['comment_author'] = $this->EE->input->post($this->EE->input->post('spamfreeform_name'));
-			}
+				$name = '';
+				$fields = explode('|', ee()->input->post('spamfreeform_name'));
+				foreach($fields as $field)
+				{
+					$name .= (ee()->input->post($field)) ? ee()->input->post($field).' ' : '';
+				}
+				$query['comment_author'] = $name;
+			}			
 	
-			if($this->EE->input->post('spamfreeform_email') && $this->EE->input->post('spamfreeform_email') != '')
+			if(ee()->input->post('spamfreeform_email') && ee()->input->post('spamfreeform_email') != '')
 			{
-				$query['comment_author_email'] = $this->EE->input->post($this->EE->input->post('spamfreeform_email'));
+				$query['comment_author_email'] = ee()->input->post(ee()->input->post('spamfreeform_email'));
 			}			
 			
-			$response = $this->_request('http://'.trim($this->settings['spamfreeform_api_key']).'.rest.akismet.com/1.1/comment-check', $query);
+			$response = $this->_request('https://'.trim($this->settings['spamfreeform_api_key']).'.rest.akismet.com/1.1/comment-check', $query);
 			$response = explode("\r\n\r\n", $response, 2);
 			if($response[0] == 'true')
 			{
@@ -81,7 +81,7 @@ class Spamfreeform_ext
 				'key' => trim($this->settings['spamfreeform_api_key'])
 			);
 			
-			$response = $this->_request('http://rest.akismet.com/1.1/verify-key', $query);
+			$response = $this->_request('https://rest.akismet.com/1.1/verify-key', $query);
 			if(trim($response) == 'valid')
 			{
 				return TRUE;
@@ -111,6 +111,8 @@ class Spamfreeform_ext
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);		
 			curl_setopt($ch, CURLOPT_POST, 1);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 			$response = curl_exec($ch);
 			curl_close($ch);
 			return $response;
@@ -125,9 +127,8 @@ class Spamfreeform_ext
 	    
 	    foreach($hooks as $hook => $method)
 	    {
-		    $this->EE->db->query($this->EE->db->insert_string('exp_extensions',
+		    ee()->db->query(ee()->db->insert_string('exp_extensions',
 		    	array(
-					'extension_id' => '',
 			        'class'        => ucfirst(get_class($this)),
 			        'method'       => $method,
 			        'hook'         => $hook,
@@ -149,15 +150,15 @@ class Spamfreeform_ext
 	        return FALSE;
 	    }
 	    
-		$this->EE->db->query("UPDATE exp_extensions 
-	     	SET version = '". $this->EE->db->escape_str($this->version)."' 
+		ee()->db->query("UPDATE exp_extensions 
+	     	SET version = '". ee()->db->escape_str($this->version)."' 
 	     	WHERE class = '".ucfirst(get_class($this))."'");
 	}
 
 	
 	function disable_extension()
 	{	    
-		$this->EE->db->query("DELETE FROM exp_extensions WHERE class = '".ucfirst(get_class($this))."'");
+		ee()->db->query("DELETE FROM exp_extensions WHERE class = '".ucfirst(get_class($this))."'");
 	}
 
 }

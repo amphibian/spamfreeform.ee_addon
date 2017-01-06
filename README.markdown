@@ -2,7 +2,7 @@
 
 ### Requirements
 
-* ExpressionEngine 1.x or 2.1.x with Freeform installed
+* ExpressionEngine 1, 2, or 3 with Freeform installed
 * PHP 5+ and cURL support
 * An [Akismet API key](https://akismet.com/signup/)
 
